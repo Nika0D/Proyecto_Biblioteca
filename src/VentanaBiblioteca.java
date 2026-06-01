@@ -154,25 +154,70 @@ public class VentanaBiblioteca extends JFrame {
         btnActualizar.addActionListener(new java.awt.event.ActionListener() {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent e) {
+                txtBusqueda.setText("");
                 actualizarTabla();
-                JOptionPane.showMessageDialog(null, "Tabla de inventario actualizada.");
+                JOptionPane.showMessageDialog(null, "Tabla de inventario restablecida.");
             }
         });
+
+        // BOTÓN BUSCAR (Pestaña Inventario)
+
+        btnBuscar.addActionListener(new java.awt.event.ActionListener() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                actualizarTabla();
+            }
+        });
+
     }
-    // Método auxiliar para refrescar la tabla
-    // Usamos el método de búsqueda que recorre el ArrayList para llenar la JTable
     private void actualizarTabla() {
         modeloTabla.setRowCount(0);
-        for (Libro libro : biblioteca.buscarPorCriterio("", "titulo")) {
-            Object[] fila = {
-                    libro.getCodigo(),
-                    libro.getTitulo(),
-                    libro.getAutor(),
-                    libro.getCategoria(),
-                    libro.isDisponible() ? "Disponible" : "Prestado"
-            };
-            modeloTabla.addRow(fila);
+
+        String texto = txtBusqueda.getText().trim();
+
+        if (texto.isEmpty() || cmbCriterio.getSelectedItem() == null) {
+            for (Libro libro : biblioteca.buscarPorCriterio("", "titulo")) {
+                agregarFila(libro);
+            }
+            return;
         }
+
+        String criterio = cmbCriterio.getSelectedItem().toString().toLowerCase();
+
+        // CASO 1: Búsqueda por CÓDIGO (Usa el HashMap )
+        if (criterio.contains("cod") || criterio.contains("cód")) {
+            Libro libroEncontrado = biblioteca.buscarPorCodigo(texto);
+            if (libroEncontrado != null) {
+                agregarFila(libroEncontrado);
+            } else {
+                JOptionPane.showMessageDialog(null, "No se encontró ningún libro con el código: " + texto);
+            }
+        }
+        // CASO 2: Búsqueda por AUTOR o TÍTULO (Usa el ArrayList)
+        else {
+            String tipoBackend = criterio.contains("autor") ? "autor" : "titulo";
+            java.util.List<Libro> resultados = biblioteca.buscarPorCriterio(texto, tipoBackend);
+
+            if (resultados.isEmpty()) {
+                JOptionPane.showMessageDialog(null, "No se encontraron coincidencias para: " + texto);
+            } else {
+                for (Libro libro : resultados) {
+                    agregarFila(libro);
+                }
+            }
+        }
+    }
+
+    // Método de apoyo para no repetir código al pintar la fila
+    private void agregarFila(Libro libro) {
+        Object[] fila = {
+                libro.getCodigo(),
+                libro.getTitulo(),
+                libro.getAutor(),
+                libro.getCategoria(),
+                libro.isDisponible() ? "Disponible" : "Prestado"
+        };
+        modeloTabla.addRow(fila);
     }
     
     public static void main(String[] args) {

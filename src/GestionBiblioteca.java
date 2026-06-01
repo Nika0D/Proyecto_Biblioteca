@@ -33,7 +33,7 @@ public class GestionBiblioteca {
     public void eliminarLibro(String codigo) {
         if (mapaLibros.containsKey(codigo)) {
             Libro libroAEliminar = mapaLibros.get(codigo);
-            mapaLibros.remove(codigo);       // O(1) en el HashMap
+            mapaLibros.remove(codigo);
             listaLibros.remove(libroAEliminar); // Elimina de la lista analógica
 
             System.out.println("Libro eliminado: " + libroAEliminar.getTitulo());
